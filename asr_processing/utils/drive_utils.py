@@ -58,21 +58,21 @@ def read_file_in_memory(service, file_id):
         print(f"Error reading file: {e}")
         raise e
 
-# Function to upload modified files back to Google Drive
-def upload_file_to_drive(service, output_folder_id, output_file_name, data):
-    # Prepare the file metadata for upload
-    file_metadata = {
-        'name': output_file_name,
-        'parents': [output_folder_id]
-    }
+# # Function to upload modified files back to Google Drive
+# def upload_file_to_drive(service, output_folder_id, output_file_name, data):
+#     # Prepare the file metadata for upload
+#     file_metadata = {
+#         'name': output_file_name,
+#         'parents': [output_folder_id]
+#     }
 
-    # Upload as a new file
-    media = MediaIoBaseUpload(data, mimetype='application/octet-stream')
-    file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
-    print(f"Uploaded file '{output_file_name}' with ID: {file.get('id')}")
+#     # Upload as a new file
+#     media = MediaIoBaseUpload(data, mimetype='application/octet-stream')
+#     file = service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+#     print(f"Uploaded file '{output_file_name}' with ID: {file.get('id')}")
 
 # Main function to modify and upload all files from input to output folder
-def modify_and_upload_all_files(input_folder_id, output_folder_id, modify_func, file_extension):
+def modify_and_upload_all_files(input_folder_id, modify_func, file_extension):
     service = authenticate_drive()
 
     # List all files in the input folder

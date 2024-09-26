@@ -2,7 +2,6 @@ from utils.drive_utils import modify_and_upload_all_files, authenticate_drive, u
 import io
 import pandas as pd
 import os
-
 import librosa
 import torch
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Tokenizer
@@ -36,12 +35,10 @@ def transcribe_wav_file(data, file_name):
 
     return None  # No need to return anything since we are not saving individual files
 
-# After processing all files, save the accumulated results to a CSV file
-def save_transcriptions_to_csv(output_folder_id, csv_file_name):
-    # Convert the list of transcriptions to a DataFrame
+def save_transcriptions_to_csv(csv_file_name):
     df = pd.DataFrame(transcriptions)
+    df.to_csv(csv_file_name)
 
-    df.to_csv('transcriptions.csv')
     ## Save the DataFrame to a CSV in memory
     #csv_data = io.StringIO()
     #df.to_csv(csv_data, index=False)
@@ -52,10 +49,9 @@ def save_transcriptions_to_csv(output_folder_id, csv_file_name):
 
 # Input and output folder IDs from Google Drive
 input_folder_id = '1GwqjWYJlE62IBSWnfkhVt34VHNSrZlmY'  # Folder containing wav files
-output_folder_id = '15YGGTlUt-QH47axrESTlzNWCeb0EaJKL'  # Folder to save the transcription CSV
 
 # Process all wav files in the input folder, accumulate the transcriptions in a list
-modify_and_upload_all_files(input_folder_id, output_folder_id, transcribe_wav_file, file_extension='.wav')
+modify_and_upload_all_files(input_folder_id, transcribe_wav_file, file_extension='.wav')
 
 # Save the accumulated transcriptions to a single CSV file in the output folder
-save_transcriptions_to_csv(output_folder_id, 'transcriptions.csv')
+save_transcriptions_to_csv('../predicted_transcriptions/wav2vec_transcriptions.csv')
