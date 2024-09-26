@@ -41,13 +41,14 @@ def save_transcriptions_to_csv(output_folder_id, csv_file_name):
     # Convert the list of transcriptions to a DataFrame
     df = pd.DataFrame(transcriptions)
 
-    # Save the DataFrame to a CSV in memory
-    csv_data = io.StringIO()
-    df.to_csv(csv_data, index=False)
+    df.to_csv('transcriptions.csv')
+    ## Save the DataFrame to a CSV in memory
+    #csv_data = io.StringIO()
+    #df.to_csv(csv_data, index=False)
 
-    # Upload the CSV file to Google Drive
-    service = authenticate_drive()
-    upload_file_to_drive(service, output_folder_id, csv_file_name, io.BytesIO(csv_data.getvalue().encode('utf-8')))
+    ## Upload the CSV file to Google Drive
+    #service = authenticate_drive()
+    #upload_file_to_drive(service, output_folder_id, csv_file_name, io.BytesIO(csv_data.getvalue().encode('utf-8')))
 
 # Input and output folder IDs from Google Drive
 input_folder_id = '1GwqjWYJlE62IBSWnfkhVt34VHNSrZlmY'  # Folder containing wav files
