@@ -72,7 +72,7 @@ def read_file_in_memory(service, file_id):
 #     print(f"Uploaded file '{output_file_name}' with ID: {file.get('id')}")
 
 # Main function to modify and upload all files from input to output folder
-def modify_and_upload_all_files(input_folder_id, modify_func, file_extension):
+def read_folder_and_modify(input_folder_id, modify_func, file_extension):
     service = authenticate_drive()
 
     # List all files in the input folder
