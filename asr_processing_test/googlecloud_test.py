@@ -6,8 +6,9 @@ client = speech.SpeechClient()
 
 # The path to the local audio file to transcribe
 file_path = 'asr_processing_test/sample_data.wav'
-
+answer = ""
 def transcribe_speech():
+    global answer
     # Read the local audio file
     with io.open(file_path, "rb") as audio_file:
         content = audio_file.read()
@@ -23,11 +24,13 @@ def transcribe_speech():
     )
 
     # Call the API to transcribe the audio
-    response = client.recognize(config=config, audio=audio)
+    response = client.recognize(config=config, audio=audio) #audio and config gets fed into the tokenizer 
 
-    # Process the response and print the transcript
+    # Process the response and save the transcript to a string
     for result in response.results:
-        print("{}".format(result.alternatives[0].transcript), end='')
+        answer += result.alternatives[0].transcript
 
 # Run the transcription
 transcribe_speech()
+
+print(answer)
