@@ -36,8 +36,12 @@ def save_transcriptions_to_csv(audio_csv_file_name):
     df.to_csv(audio_csv_file_name)
 
 input_folder_id = '1AdEu1i1kkuQIRBCEC6MqlpGSk0EGHUy-' # Input folder ID from Google Drive
-output_text_file_path = 'C:/Users/dlee3/OneDrive - Olin College of Engineering/PInT/stuttered-speech-asr/gt_transcriptions/fluent_gt_transcr.csv'
-read_folder_and_process(input_folder_id, transcribe_wav_file, output_text_file_path)
+
+# output_text_file_path = '/home/ec2-user/stuttered-speech-asr/gt_transcriptions/fluent_gt_transcr.csv'
 # output_file_path = '/home/ec2-user/stuttered-speech-asr/predicted_transcriptions/wav2vec_transcr.csv'
+
+output_text_file_path = 'C:/Users/dlee3/OneDrive - Olin College of Engineering/PInT/stuttered-speech-asr/gt_transcriptions/fluent_gt_transcr.csv'
 output_file_path = 'C:/Users/dlee3/OneDrive - Olin College of Engineering/PInT/stuttered-speech-asr/predicted_transcriptions/wav2vec_transcr.csv'
+
+read_folder_and_process(input_folder_id, transcribe_wav_file, output_text_file_path)
 save_transcriptions_to_csv(output_file_path)

@@ -14,25 +14,24 @@ SCOPES = ['https://www.googleapis.com/auth/drive']
 # Authenticate and build the Google Drive API service
 def authenticate_drive():
     creds = None
+
     if os.path.exists('token.pickle'):
        with open('token.pickle', 'rb') as token:
            creds = pickle.load(token)
-
     if not creds or not creds.valid:
        if creds and creds.expired and creds.refresh_token:
            creds.refresh(Request())
        else:
            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
            creds = flow.run_local_server(port=0)
-
        with open('token.pickle', 'wb') as token:
            pickle.dump(creds, token)
 
     # # Load the credentials from the modified credentials.json
     # flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-
     # # This will give you a URL to paste into your browser on your local machine
     # creds = flow.run_console()
+
     service = build('drive', 'v3', credentials=creds)
     return service
 
