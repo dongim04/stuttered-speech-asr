@@ -1,8 +1,8 @@
-# import os
-# import pickle
+import os
+import pickle
 import io
-# import pandas as pd
-# from google.auth.transport.requests import Request
+import pandas as pd
+from google.auth.transport.requests import Request
 # from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -13,34 +13,71 @@ SCOPES = ['https://www.googleapis.com/auth/drive']
 
 # Authenticate and build the Google Drive API service
 def authenticate_drive():
-    #creds = None
-    #if os.path.exists('token.pickle'):
-    #    with open('token.pickle', 'rb') as token:
-    #        creds = pickle.load(token)
+    creds = None
+    if os.path.exists('token.pickle'):
+       with open('token.pickle', 'rb') as token:
+           creds = pickle.load(token)
 
-    #if not creds or not creds.valid:
-    #    if creds and creds.expired and creds.refresh_token:
-    #        creds.refresh(Request())
-    #    else:
-    #        flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-    #        creds = flow.run_local_server(port=0)
+    if not creds or not creds.valid:
+       if creds and creds.expired and creds.refresh_token:
+           creds.refresh(Request())
+       else:
+           flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+           creds = flow.run_local_server(port=0)
 
-    #    with open('token.pickle', 'wb') as token:
-    #        pickle.dump(creds, token)
+       with open('token.pickle', 'wb') as token:
+           pickle.dump(creds, token)
 
-    # Load the credentials from the modified credentials.json
-    flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+    # # Load the credentials from the modified credentials.json
+    # flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
 
-    # This will give you a URL to paste into your browser on your local machine
-    creds = flow.run_console()
+    # # This will give you a URL to paste into your browser on your local machine
+    # creds = flow.run_console()
     service = build('drive', 'v3', credentials=creds)
     return service
 
-# Function to list all files in a Google Drive folder
+# Returns a list of all files and folders within a given Google Drive folder.
 def list_files_in_folder(service, folder_id):
-    query = f"'{folder_id}' in parents"
-    results = service.files().list(q=query, fields="files(id, name)").execute()
+    query = f"'{folder_id}' in parents and trashed = false"
+    results = service.files().list(q=query, fields="files(id, name, mimeType)").execute()
     return results.get('files', [])
+
+
+# Recursive function to traverse folders and return paths of all audio files
+def find_audio_files_in_folder(service, folder_id, audio_file_list=None, text_file_list=None):
+    """Recursively find all .flac files within a Google Drive folder and its subfolders."""
+    if audio_file_list is None:
+        audio_file_list = []
+        text_file_list = []
+
+    # List all files and folders in the current folder
+    items = list_files_in_folder(service, folder_id)
+
+    for item in items:
+        item_id = item['id']
+        item_name = item['name']
+        mime_type = item['mimeType']
+
+        # Check if it's a folder (mimeType for Google Drive folders)
+        if mime_type == 'application/vnd.google-apps.folder':
+            # Recursively search this folder
+            # print(f"Entering folder: {item_name}")
+            find_audio_files_in_folder(service, item_id, audio_file_list, text_file_list)
+        elif item_name.endswith('.flac'):
+            # It's a .flac file, add to the list
+            # print(f"Found audio file: {item_name}")
+            audio_file_list.append({
+                'file_id': item_id,
+                'file_name': item_name
+            })
+        elif item_name.endswith('.txt'):
+            text_file_list.append({
+                'file_id': item_id,
+                'file_name': item_name
+            })
+    
+    return audio_file_list, text_file_list
+
 
 # Function to read a file (text or binary) from Google Drive into memory
 def read_file_in_memory(service, file_id):
@@ -72,32 +109,47 @@ def read_file_in_memory(service, file_id):
 #     print(f"Uploaded file '{output_file_name}' with ID: {file.get('id')}")
 
 # Main function to modify and upload all files from input to output folder
-def read_folder_and_modify(input_folder_id, modify_func, file_extension):
+def read_folder_and_process(input_folder_id, modify_func, output_text_file_path):
     service = authenticate_drive()
 
-    # List all files in the input folder
-    files = list_files_in_folder(service, input_folder_id)
+    # Get all .flac files in the folder and subfolders
+    audio_files, text_files = find_audio_files_in_folder(service, input_folder_id)
 
-    if not files:
-        print(f"No files found in folder '{input_folder_id}'.")
+    if not audio_files:
+        print(f"No audio files found in folder '{input_folder_id}'.")
         return
 
-    # Process each file in the folder
-    for file in files:
-        file_id = file['id']
-        file_name = file['name']
-
+    # Process each audio file
+    for audio_file in audio_files:
+        file_id = audio_file['file_id']
+        file_name = audio_file['file_name']
         try:
-            # Check the file extension
-            if not file_name.lower().endswith(file_extension):
-                print(f"Skipping file with unsupported extension: {file_name}")
-                continue
-
-            # Read the file into memory
-            data = read_file_in_memory(service, file_id)
-
-            # Call the modify_func and pass both data and file_name
-            modify_func(data, file_name)
-
+            audio_data = read_file_in_memory(service, file_id)
+            modify_func(audio_data, file_name)
         except Exception as e:
-            continue
+            print(f"Failed to process file '{file_name}': {e}")
+    
+
+    # Process transcription file
+    gt_transcriptions = []
+    for text_file in text_files:
+        file_id = text_file['file_id']
+        file_name = text_file['file_name']
+        try:
+            text_data = read_file_in_memory(service, file_id).getvalue().decode('utf-8')
+            # Process each line in the text file
+            for line in text_data.strip().splitlines():
+                line_split = line.split(' ', 1)
+                if len(line_split) == 2:
+                    file_name_in_line = line_split[0]  # File name part
+                    transcription_text = line_split[1]  # Transcription text
+
+                    # Append to ground truth transcriptions list
+                    gt_transcriptions.append({
+                        'file_name': file_name_in_line,
+                        'ground_truth': transcription_text.lower()
+                    })
+        except Exception as e:
+            print(f"Failed to process file '{file_name}': {e}")
+    df_transc = pd.DataFrame(gt_transcriptions)
+    df_transc.to_csv(output_text_file_path)
