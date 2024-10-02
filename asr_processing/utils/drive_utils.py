@@ -2,6 +2,7 @@ import os
 import pickle
 import io
 import pandas as pd
+import csv
 from google.auth.transport.requests import Request
 # from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -27,10 +28,8 @@ def authenticate_drive():
        with open('token.pickle', 'wb') as token:
            pickle.dump(creds, token)
 
-    # # Load the credentials from the modified credentials.json
-    # flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
-    # # This will give you a URL to paste into your browser on your local machine
-    # creds = flow.run_console()
+    # flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES) # Load credentials from credentials.json
+    # creds = flow.run_console() #  URL to paste into browser on local machine
 
     service = build('drive', 'v3', credentials=creds)
     return service
@@ -74,7 +73,12 @@ def find_audio_files_in_folder(service, folder_id, audio_file_list=None, text_fi
                 'file_id': item_id,
                 'file_name': item_name
             })
-    
+        elif item_name.endswith('.csv'):
+            text_file_list.append({
+                'file_id': item_id,
+                'file_name': item_name
+            })
+
     return audio_file_list, text_file_list
 
 
@@ -116,7 +120,6 @@ def read_folder_and_process(input_folder_id, modify_func, output_text_file_path)
 
     if not audio_files:
         print(f"No audio files found in folder '{input_folder_id}'.")
-        return
 
     # Process each audio file
     for audio_file in audio_files:
@@ -127,27 +130,48 @@ def read_folder_and_process(input_folder_id, modify_func, output_text_file_path)
             modify_func(audio_data, file_name)
         except Exception as e:
             print(f"Failed to process file '{file_name}': {e}")
-    
+
+    if not text_files:
+        print(f"No text files found in folder '{input_folder_id}'.")
 
     # Process transcription file
     gt_transcriptions = []
+    total_stutter = 0
     for text_file in text_files:
         file_id = text_file['file_id']
         file_name = text_file['file_name']
         try:
             text_data = read_file_in_memory(service, file_id).getvalue().decode('utf-8')
-            # Process each line in the text file
-            for line in text_data.strip().splitlines():
-                line_split = line.split(' ', 1)
-                if len(line_split) == 2:
-                    file_name_in_line = line_split[0]  # File name part
-                    transcription_text = line_split[1]  # Transcription text
+            if file_name.endswith('txt'):
+                # Process each line in the text file
+                for line in text_data.strip().splitlines():
+                    line_split = line.split(' ', 1)
+                    if len(line_split) == 2:
+                        file_name_in_line = line_split[0]  # File name part
+                        transcription_text = line_split[1]  # Transcription text
 
-                    # Append to ground truth transcriptions list
-                    gt_transcriptions.append({
-                        'file_name': file_name_in_line,
-                        'ground_truth': transcription_text.lower()
-                    })
+                        # Append to ground truth transcriptions list
+                        gt_transcriptions.append({
+                            'file_name': file_name_in_line,
+                            'ground_truth': transcription_text.lower()
+                        })
+            elif file_name.endswith('csv'):
+                # Read the CSV content
+                reader = csv.reader(io.StringIO(text_data), delimiter='\t')
+
+                for row in reader:
+                    if len(row) == 4:  # Ensure that we have four columns
+                        transcription_word = row[0]  # First column is the transcription word
+                        stutter_value = int(row[3])  # Last column is the stutter value (cast to int)
+                        gt_transcriptions.append(transcription_word) # Add the transcription word to the concatenated string
+                        total_stutter += stutter_value
+
+                # Append the result to the list
+                gt_transcriptions.append({
+                    'file_name': file_name,
+                    'gt_transcriptions': ' '.join(gt_transcriptions).lower(),  # Join all words into one string
+                    'total_stutter': total_stutter
+                })
         except Exception as e:
             print(f"Failed to process file '{file_name}': {e}")
     df_transc = pd.DataFrame(gt_transcriptions)
