@@ -1,18 +1,20 @@
 from utils.drive_utils import read_folder_and_modify
 import pandas as pd
 import os
-### STEP1: IMPORT LIBRARIES
+from whisper import load_model
+import librosa
 
-### STEP2: DEFINE MODEL
 
+model = load_model("base")
 transcriptions = []
 
 def transcribe_wav_file(data, file_name):
     with open('temp.wav', 'wb') as f:
         f.write(data.read())
-
-    result = ### STEP3: SAVE TRANSCRIPTION OUTPUT (STRING TYPE) | file_path = 'temp.wav'
-
+    input_audio, _ = librosa.load('temp.wav', sr=16000)
+    out = model.transcribe(input_audio)      
+    result = out['text']
+    
     transcriptions.append({
         'file_name': file_name,
         'prediction': result.lower()
