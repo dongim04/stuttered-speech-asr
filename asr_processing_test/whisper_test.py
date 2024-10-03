@@ -1,8 +1,11 @@
-### STEP1: IMPORT LIBRARIES
+import librosa
+import whisper  
 
-### STEP2: DEFINE MODEL
+# Load the model  
+model = whisper.load_model("base")  
 
-### STEP3: SAVE TRANSCRIPTION OUTPUT (STRING TYPE)
-result = 
-
-print(result)
+# Load and transcribe audio   
+file_path = "sample_data.wav"
+input_audio, _ = librosa.load(file_path, sr=16000)
+result = model.transcribe(input_audio)  
+print(result["text"])  
