@@ -136,10 +136,11 @@ def read_folder_and_process(input_folder_id, modify_func, output_text_file_path)
 
     # Process transcription file
     gt_transcriptions = []
-    total_stutter = 0
     for text_file in text_files:
         file_id = text_file['file_id']
         file_name = text_file['file_name']
+        transcription_words = []
+        total_stutter = 0
         try:
             text_data = read_file_in_memory(service, file_id).getvalue().decode('utf-8')
             if file_name.endswith('txt'):
@@ -163,13 +164,13 @@ def read_folder_and_process(input_folder_id, modify_func, output_text_file_path)
                     if len(row) == 4:  # Ensure that we have four columns
                         transcription_word = row[0]  # First column is the transcription word
                         stutter_value = int(row[3])  # Last column is the stutter value (cast to int)
-                        gt_transcriptions.append(transcription_word) # Add the transcription word to the concatenated string
+                        transcription_words.append(transcription_word) # Add the transcription word to the concatenated string
                         total_stutter += stutter_value
 
                 # Append the result to the list
                 gt_transcriptions.append({
                     'file_name': file_name,
-                    'gt_transcriptions': ' '.join(gt_transcriptions).lower(),  # Join all words into one string
+                    'gt_transcriptions': ' '.join(transcription_words).lower(),  # Join all words into one string
                     'total_stutter': total_stutter
                 })
         except Exception as e:
