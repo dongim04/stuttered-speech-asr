@@ -10,8 +10,8 @@ client = speech.SpeechClient()
 
 ### STEP2: DEFINE MODEL
 config = speech.RecognitionConfig(
-    encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,  # Ensure this matches your file format
-    sample_rate_hertz=8000, 
+    encoding=speech.RecognitionConfig.AudioEncoding.FLAC,  # FLAC format
+    sample_rate_hertz=16000,  # Ensure this matches your file format
     language_code="en-US",  # Language of the audio
 )
 
@@ -20,7 +20,9 @@ predicted_transcriptions = []
 def transcribe_wav_file(data, file_name):
     result = ''
     audio = speech.RecognitionAudio(content=data.read())
-    response = client.recognize(config=config, audio=audio)
+    operation = client.long_running_recognize(config=config, audio=audio)
+    response = operation.result(timeout=600)
+    # response = client.recognize(config=config, audio=audio)
     for resultString in response.results:
         result += resultString.alternatives[0].transcript
 
@@ -30,7 +32,6 @@ def transcribe_wav_file(data, file_name):
         'file_name': file_name,
         'prediction': result.lower()
     })
-    
     return None
 
 def save_transcriptions_to_csv(audio_csv_file_name):
