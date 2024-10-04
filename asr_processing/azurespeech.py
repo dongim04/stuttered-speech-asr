@@ -3,10 +3,9 @@ import pandas as pd
 import os
 from azure.cognitiveservices.speech import SpeechConfig, SpeechRecognizer, AudioConfig
 
-subscription_key = "5f393d5cc2c14b5e81c879e4e0ff8ba6"
+subscription_key = "YOUR-SUBSCRIPTION-KEY"
 location = "eastus"
 speech_config = SpeechConfig(subscription=subscription_key, region=location, speech_recognition_language="en-US")
-
 
 predicted_transcriptions = []
 
