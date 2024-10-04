@@ -157,20 +157,18 @@ def read_folder_and_process(input_folder_id, modify_func, output_text_file_path)
                             'ground_truth': transcription_text.lower()
                         })
             elif file_name.endswith('csv'):
-                # Read the CSV content
-                reader = csv.reader(io.StringIO(text_data), delimiter='\t')
+                reader = csv.reader(io.StringIO(text_data), delimiter=',')
 
                 for row in reader:
-                    if len(row) == 4:  # Ensure that we have four columns
-                        transcription_word = row[0]  # First column is the transcription word
-                        stutter_value = int(row[3])  # Last column is the stutter value (cast to int)
-                        transcription_words.append(transcription_word) # Add the transcription word to the concatenated string
-                        total_stutter += stutter_value
+                    print(row)
+                    transcription_word = row[0]
+                    stutter_value = int(row[3])
+                    transcription_words.append(transcription_word)
+                    total_stutter += stutter_value
 
-                # Append the result to the list
                 gt_transcriptions.append({
                     'file_name': file_name,
-                    'gt_transcriptions': ' '.join(transcription_words).lower(),  # Join all words into one string
+                    'gt_transcriptions': ' '.join(transcription_words).lower(),
                     'total_stutter': total_stutter
                 })
         except Exception as e:
