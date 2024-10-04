@@ -68,16 +68,16 @@ def find_audio_files_in_folder(service, folder_id, audio_file_list=None, text_fi
                 'file_id': item_id,
                 'file_name': item_name
             })
-        elif item_name.endswith('.txt'):
-            text_file_list.append({
-                'file_id': item_id,
-                'file_name': item_name
-            })
-        elif item_name.endswith('.csv'):
-            text_file_list.append({
-                'file_id': item_id,
-                'file_name': item_name
-            })
+        # elif item_name.endswith('.txt'):
+        #     text_file_list.append({
+        #         'file_id': item_id,
+        #         'file_name': item_name
+        #     })
+        # elif item_name.endswith('.csv'):
+        #     text_file_list.append({
+        #         'file_id': item_id,
+        #         'file_name': item_name
+        #     })
 
     return audio_file_list, text_file_list
 
@@ -131,47 +131,46 @@ def read_folder_and_process(input_folder_id, modify_func, output_text_file_path)
         except Exception as e:
             print(f"Failed to process file '{file_name}': {e}")
 
-    if not text_files:
-        print(f"No text files found in folder '{input_folder_id}'.")
+    # if not text_files:
+    #     print(f"No text files found in folder '{input_folder_id}'.")
 
-    # Process transcription file
-    gt_transcriptions = []
-    for text_file in text_files:
-        file_id = text_file['file_id']
-        file_name = text_file['file_name']
-        transcription_words = []
-        total_stutter = 0
-        try:
-            text_data = read_file_in_memory(service, file_id).getvalue().decode('utf-8')
-            if file_name.endswith('txt'):
-                # Process each line in the text file
-                for line in text_data.strip().splitlines():
-                    line_split = line.split(' ', 1)
-                    if len(line_split) == 2:
-                        file_name_in_line = line_split[0]  # File name part
-                        transcription_text = line_split[1]  # Transcription text
+    # # Process transcription file
+    # gt_transcriptions = []
+    # for text_file in text_files:
+    #     file_id = text_file['file_id']
+    #     file_name = text_file['file_name']
+    #     transcription_words = []
+    #     total_stutter = 0
+    #     try:
+    #         text_data = read_file_in_memory(service, file_id).getvalue().decode('utf-8')
+    #         if file_name.endswith('txt'):
+    #             # Process each line in the text file
+    #             for line in text_data.strip().splitlines():
+    #                 line_split = line.split(' ', 1)
+    #                 if len(line_split) == 2:
+    #                     file_name_in_line = line_split[0]  # File name part
+    #                     transcription_text = line_split[1]  # Transcription text
 
-                        # Append to ground truth transcriptions list
-                        gt_transcriptions.append({
-                            'file_name': file_name_in_line,
-                            'ground_truth': transcription_text.lower()
-                        })
-            elif file_name.endswith('csv'):
-                reader = csv.reader(io.StringIO(text_data), delimiter=',')
-
-                for row in reader:
-                    print(row)
-                    transcription_word = row[0]
-                    stutter_value = int(row[3])
-                    transcription_words.append(transcription_word)
-                    total_stutter += stutter_value
-
-                gt_transcriptions.append({
-                    'file_name': file_name,
-                    'gt_transcriptions': ' '.join(transcription_words).lower(),
-                    'total_stutter': total_stutter
-                })
-        except Exception as e:
-            print(f"Failed to process file '{file_name}': {e}")
-    df_transc = pd.DataFrame(gt_transcriptions)
-    df_transc.to_csv(output_text_file_path)
+    #                     # Append to ground truth transcriptions list
+    #                     gt_transcriptions.append({
+    #                         'file_name': file_name_in_line,
+    #                         'ground_truth': transcription_text.lower()
+    #                     })
+    #         elif file_name.endswith('csv'):
+    #             reader = csv.reader(io.StringIO(text_data), delimiter=',')
+    #             for row in reader:
+    #                 print(row)
+    #                 transcription_word = row[0]
+    #                 stutter_value = int(row[3])
+    #                 transcription_words.append(transcription_word)
+    #                 total_stutter += stutter_value
+    #             gt_transcriptions.append({
+    #                 'file_name': file_name,
+    #                 'gt_transcriptions': ' '.join(transcription_words).lower(),
+    #                 'total_stutter': total_stutter
+    #             })
+    #     except Exception as e:
+    #         print(f"Failed to process file '{file_name}': {e}")
+    # df_transc = pd.DataFrame(gt_transcriptions)
+    # df_transc.to_csv(output_text_file_path)
+    
