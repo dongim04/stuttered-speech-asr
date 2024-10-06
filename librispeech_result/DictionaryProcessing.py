@@ -7,16 +7,13 @@ file_path = r'C:\Users\sadelli\Documents\GitHub\stuttered-speech-asr\librispeech
 # Open and read the file
 with open(file_path, 'r') as file:
     lines = file.readlines()
-
     # Process each line in the file
     for line in lines:
         # Split the line into code and text using the first space as the delimiter
-        split_line = line.strip().split(' ', 1)
+        split_line = line.strip().split(maxsplit=1)
         if len(split_line) == 2:
             file_code, text = split_line
             file_dict_actual[file_code] = text
-
-
 
 
 
@@ -33,11 +30,9 @@ with open(file_path, 'r') as file:
     # Process each line in the file
     for line in lines:
         # Split the line into code and text using the first space as the delimiter
-        split_line = line.strip().split(' ', 1)
+        split_line = line.strip().split('\t', 1)
         if len(split_line) == 2:
             file_code, text = split_line
             # Remove the last 5 characters from the file code
-            file_code = file_code[:-5]  
-            file_dict_predicted[file_code] = text
-
-
+            file_code_short = file_code[:-5]  
+            file_dict_predicted[file_code_short] = text
