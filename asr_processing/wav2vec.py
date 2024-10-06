@@ -25,8 +25,7 @@ def transcribe_wav_file(data, file_name):
         'file_name': file_name,
         'prediction': result.lower()
     })
-    print('saving transcriptions of ', file_name)
-    print(result[:10])
+    print('saving transcriptions of', file_name)
     if os.path.exists('temp.wav'):
         os.remove('temp.wav')
     return None  # No need to return anything since we are not saving individual files

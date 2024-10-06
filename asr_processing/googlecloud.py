@@ -1,4 +1,4 @@
-from utils.drive_utils import read_folder_and_modify
+from utils.drive_utils import read_folder_and_process
 import pandas as pd
 import os
 ### STEP1: IMPORT LIBRARIES
@@ -9,44 +9,43 @@ import io
 client = speech.SpeechClient()
 
 ### STEP2: DEFINE MODEL
-# What do i put here??
+config = speech.RecognitionConfig(
+    encoding=speech.RecognitionConfig.AudioEncoding.FLAC,  # FLAC format
+    sample_rate_hertz=16000,  # Ensure this matches your file format
+    language_code="en-US",  # Language of the audio
+)
 
-transcriptions = []
+predicted_transcriptions = []
 
 def transcribe_wav_file(data, file_name):
-    answer = ''
-    # Prepare the RecognitionAudio object
-    with io.open(temp.wav, "wb") as audio_file:
-        content = audio_file.read()
-    audio = speech.RecognitionAudio(content=content)
-
-        # Set up the RecognitionConfig
-    config = speech.RecognitionConfig(
-        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,  # Ensure this matches your file format
-        sample_rate_hertz=8000, 
-        language_code="en-US",  # Language of the audio
-    )
-
-    # Call the API to transcribe the audio
-    response = client.recognize(config=config, audio=audio)
-
-    # Process the response and save the transcript to answer
+    result = ''
+    audio = speech.RecognitionAudio(content=data.read())
+    operation = client.long_running_recognize(config=config, audio=audio)
+    response = operation.result(timeout=600)
+    # response = client.recognize(config=config, audio=audio)
     for resultString in response.results:
-        answer += resultString.alternatives[0].transcript
+        result += resultString.alternatives[0].transcript
 
-    transcriptions.append({
+    print('res:', result)
+
+    predicted_transcriptions.append({
         'file_name': file_name,
-        'prediction': answer.lower()
+        'prediction': result.lower()
     })
-    
-    if os.path.exists('temp.wav'):
-        os.remove('temp.wav')
     return None
 
-def save_transcriptions_to_csv(csv_file_name):
-    df = pd.DataFrame(transcriptions)
-    df.to_csv(csv_file_name)
-    
-input_folder_id = '1GwqjWYJlE62IBSWnfkhVt34VHNSrZlmY'
-read_folder_and_modify(input_folder_id, transcribe_wav_file, file_extension='.wav')
-save_transcriptions_to_csv('/home/ec2-user/stuttered-speech-asr/predicted_transcriptions/azure_transcr.csv')
+def save_transcriptions_to_csv(audio_csv_file_name):
+    df = pd.DataFrame(predicted_transcriptions)
+    df.to_csv(audio_csv_file_name)
+
+
+# input_folder_id = '1AdEu1i1kkuQIRBCEC6MqlpGSk0EGHUy-' # LibriSpeech train-clean-100
+# # output_file_path = '/home/ec2-user/stuttered-speech-asr/librispeech_result/googlecloud_librispeech.csv'
+# output_file_path = 'C:/Users/dlee3/OneDrive - Olin College of Engineering/PInT/stuttered-speech-asr/librispeech_result/googlecloud_librispeech.csv'
+
+input_folder_id = '1LW2FqGlbWVTFgQCMp3sfFa0KsNFEd6tM' # LibriStutter
+# output_file_path = '/home/ec2-user/stuttered-speech-asr/libristutter_result/googlecloud_libristutter.csv'
+output_file_path = 'C:/Users/dlee3/OneDrive - Olin College of Engineering/PInT/stuttered-speech-asr/libristutter_result/googlecloud_libristutter.csv'
+
+read_folder_and_process(input_folder_id, transcribe_wav_file, '')
+save_transcriptions_to_csv(output_file_path)
