@@ -39,48 +39,51 @@ def collect_files(source_dir, target_dir, file_extension=None):
             
             # Copy the file
             try:
-                shutil.copy2(source_file, target_file)
-                print(f"Copied: {source_file} -> {target_file}")
-                file_count += 1
+                if file.endswith('.csv'):
+                    shutil.copy2(source_file, target_file)
+                    #print(f"Copied: {source_file} -> {target_file}")
+                    file_count += 1
+                    
             except Exception as e:
                 print(f"Error copying {source_file}: {e}")
     
     print(f"\nProcessing complete. Copied {file_count} files to {target_path}")
 
-# Example usage
-if __name__ == "__main__":
-    # Update these paths according to your needs
-    source_directory = r"C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\StutterGTData"
-    target_directory = r"C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\FlattenedStutterGTData"      # Replace with your target directory
-    
-    # Optional: specify file extension if you only want certain files
-    # file_extension = ".txt"  # Uncomment and modify if needed
-    
-    collect_files(source_directory, target_directory)  # Add file_extension as third argument if needed
-    
-    
 # USE THIS TO CHECK LENGTH 
 def traverse_directory(directory):
     """Traverses a directory and its subdirectories, printing all folders."""
     fileCount = 0 
-    directoryCount = 0 
-    #rootPath = "C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\StutterGTData"
+    finalDF = pd.DataFrame()
     for root, dirs, files in os.walk(directory):
         
         for name in files:          
             fileCount +=1 
             #print(os.path.join(root, name))
             if name.endswith('.csv'):
-                df = pd.read_csv(name)
+                filePath = Path(root) / name
+
+                df = pd.read_csv(filePath, header=None)
+                result = df.iloc[:, 0].str.cat(sep=' ')
+                annotation = df.iloc[:, 3].values
                 
-                text = df[: , 0]
-                print(text)
-    print("Num of Files:"+ str(fileCount))
-    print("Num of Directories:"+ str(directoryCount))
+            new_row = pd.DataFrame({
+                'text': [result],
+                'StutterType': [annotation]
+            })
+            
+            finalDF = pd.concat([finalDF, new_row], ignore_index=True)
+        finalDF.to_csv('StutterGTXavier.csv', index=False)
 
+                
+    print("Num of Files:"+ str(fileCount))  
     
+if __name__ == "__main__":
+    source_directory = r"C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\StutterGTData"
+    target_directory = r"C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\FlattenedStutterGTData"      # Replace with your target directory
+    
+    # flatten files into one directory for ease of use
+    collect_files(source_directory, target_directory)  
+    
+    # Grab text from CSV
+    traverse_directory(target_directory)
 
-print("hi")
-
-directory_to_traverse = r"C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\FlattenedStutterGTData"
-traverse_directory(directory_to_traverse)
