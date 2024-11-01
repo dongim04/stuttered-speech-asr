@@ -98,18 +98,6 @@ if __name__ == "__main__":
 
     filtered_df.to_csv('filtered_GT_Speech.csv', index=False)
 
-
-# I need to check word error rate for 
-# minWer = 1
-# minWerName = 'poop'
-# for text in gt_stutter_text:
-#   for werText in gt_speech_text:
-#      if minWer > wer(text, werText):
-#        minwer = wer(text,werText)
-#        minWerName = (werText)
-#   rename(text, werText) Rename the name of the
-#  gt_stutter to the lowest wer file name of speech GT
-
 minWer = 999999.1 # make sure it is a float
 minWerFileName = ''
 stutterGT = r'C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\StutterGTXavier.csv'
@@ -123,19 +111,19 @@ speechDF = pd.read_csv(speechGT)
 
 # Iterate over rows with index
 for stutterIndex, stutterRow in stutterDF.iterrows():
-    #print(f"Index: {index}, Row: {row[1]}") 
-    #print(stutterRow[1])
     for speechIndex, speechRow in speechDF.iterrows():
-        #print(speechRow[2])
-        # print(jiwer.wer(stutterRow[1],speechRow[2]))
-        # print(type(jiwer.wer(stutterRow[1],speechRow[2])))
+      
         if minWer > jiwer.wer(stutterRow.iloc[1],speechRow.iloc[2]):
-             #print(jiwer.wer(stutterRow[1],speechRow[2]))
              minWer = jiwer.wer(stutterRow.iloc[1],speechRow.iloc[2])
              minWerFileName = speechRow.iloc[2]
              stutter = stutterRow.iloc[1]
+
     print(minWer)
     print(minWerFileName)
     print(stutter)
+    dfGTSpeech['StutterType'] = stutterRow.iloc[2]
     minWer = 999999.1
+    dfGTSpeech.to_csv('shiibal.csv', index=False)  # Don't save the index
+
+
 
