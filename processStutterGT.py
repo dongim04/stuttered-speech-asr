@@ -2,6 +2,8 @@ import pandas as pd
 import os
 import shutil
 from pathlib import Path
+import jiwer
+import sys
 
 def collect_files(source_dir, target_dir, file_extension=None):
     """
@@ -65,8 +67,9 @@ def traverse_directory(directory):
                 df = pd.read_csv(filePath, header=None)
                 result = df.iloc[:, 0].str.cat(sep=' ')
                 annotation = df.iloc[:, 3].values
-                
+
             new_row = pd.DataFrame({
+                'file_name': [name.replace('.csv', '')],
                 'text': [result],
                 'StutterType': [annotation]
             })
@@ -82,8 +85,57 @@ if __name__ == "__main__":
     target_directory = r"C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\FlattenedStutterGTData"      # Replace with your target directory
     
     # flatten files into one directory for ease of use
-    collect_files(source_directory, target_directory)  
+    #collect_files(source_directory, target_directory)  
     
     # Grab text from CSV
-    traverse_directory(target_directory)
+    #traverse_directory(target_directory)
+    
+    # Bruh the files names just aren't the same (they have slightly different annotations)
+    dfGTSpeech = pd.read_csv(r"C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\librispeech_result\gt_librispeech.csv")
+    dfGTStutter = pd.read_csv(r"C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\StutterGTXavier.csv")
+    # Also the text idea does not work because there are slight issues like ms vs missus or one vs 1. I might have to do WER to group the lowest WER together. 
+    filtered_df = dfGTSpeech[dfGTSpeech['file_name'].isin(dfGTStutter['file_name'])]
+
+    filtered_df.to_csv('filtered_GT_Speech.csv', index=False)
+
+
+# I need to check word error rate for 
+# minWer = 1
+# minWerName = 'poop'
+# for text in gt_stutter_text:
+#   for werText in gt_speech_text:
+#      if minWer > wer(text, werText):
+#        minwer = wer(text,werText)
+#        minWerName = (werText)
+#   rename(text, werText) Rename the name of the
+#  gt_stutter to the lowest wer file name of speech GT
+
+minWer = 999999.1 # make sure it is a float
+minWerFileName = ''
+stutterGT = r'C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\StutterGTXavier.csv'
+speechGT = r'C:\Users\xnishikawa\OneDrive - Olin College of Engineering\Documents\GitHub\stuttered-speech-asr\librispeech_result\gt_librispeech.csv'
+
+minWerFileName = ''
+stutter = ''
+
+stutterDF = pd.read_csv(stutterGT)
+speechDF = pd.read_csv(speechGT)
+
+# Iterate over rows with index
+for stutterIndex, stutterRow in stutterDF.iterrows():
+    #print(f"Index: {index}, Row: {row[1]}") 
+    #print(stutterRow[1])
+    for speechIndex, speechRow in speechDF.iterrows():
+        #print(speechRow[2])
+        # print(jiwer.wer(stutterRow[1],speechRow[2]))
+        # print(type(jiwer.wer(stutterRow[1],speechRow[2])))
+        if minWer > jiwer.wer(stutterRow.iloc[1],speechRow.iloc[2]):
+             #print(jiwer.wer(stutterRow[1],speechRow[2]))
+             minWer = jiwer.wer(stutterRow.iloc[1],speechRow.iloc[2])
+             minWerFileName = speechRow.iloc[2]
+             stutter = stutterRow.iloc[1]
+    print(minWer)
+    print(minWerFileName)
+    print(stutter)
+    minWer = 999999.1
 
