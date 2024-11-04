@@ -109,21 +109,40 @@ stutter = ''
 stutterDF = pd.read_csv(stutterGT)
 speechDF = pd.read_csv(speechGT)
 
+import pandas as pd
+
+# Initialize DataFrame with necessary columns
+myDf = pd.DataFrame(columns=['FileName', 'Text', 'StutterType'])
+
+# Initialize minWer outside the loop
+minWer = float('inf')
+
 # Iterate over rows with index
 for stutterIndex, stutterRow in stutterDF.iterrows():
     for speechIndex, speechRow in speechDF.iterrows():
-      
-        if minWer > jiwer.wer(stutterRow.iloc[1],speechRow.iloc[2]):
-             minWer = jiwer.wer(stutterRow.iloc[1],speechRow.iloc[2])
-             minWerFileName = speechRow.iloc[2]
-             stutter = stutterRow.iloc[1]
+        current_wer = jiwer.wer(stutterRow.iloc[1], speechRow.iloc[2])
+        
+        if current_wer < minWer:
+            minWer = jiwer.wer(stutterRow.iloc[1], speechRow.iloc[2])
+            minWerFileName = speechRow.iloc[1]  
+            speechText = speechRow.iloc[2]      
+            stutterType = stutterRow.iloc[2]    
+    
+    # Add new row to DataFrame
+    new_row = pd.DataFrame({
+        'FileName': [minWerFileName],
+        'Text': [speechText],
+        'StutterType': [stutterType]
+    })
+    
+    myDf = pd.concat([myDf, new_row], ignore_index=True)
+    
+    print(f"Added file: {minWerFileName}, Stutter Type: {stutterType}")
+    minWer = float('inf') # Big Number
 
-    print(minWer)
-    print(minWerFileName)
-    print(stutter)
-    dfGTSpeech['StutterType'] = stutterRow.iloc[2]
-    minWer = 999999.1
-    dfGTSpeech.to_csv('shiibal.csv', index=False)  # Don't save the index
+# Save the results
+myDf.to_csv('5000Something.csv', index=False)
+
 
 
 
