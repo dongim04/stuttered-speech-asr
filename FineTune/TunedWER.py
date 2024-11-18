@@ -2,9 +2,8 @@ import jiwer
 
 import pandas as pd
 
-stutter_transcription = 'libristutter_result\wav2vec_libristutter.csv'
 gt_stutter = 'librispeech_result\gt_librispeech.csv'
-
+stutter_transcription = 'data.csv'
 
 df_gt_stutter = pd.read_csv(gt_stutter)
 df_stutter_transcription = pd.read_csv(stutter_transcription)
@@ -25,7 +24,7 @@ df_stutter_transcription_clean = df_stutter_transcription.drop(df_stutter_transc
 # Reset the index if needed
 df_stutter_transcription_clean['file_name'] = df_stutter_transcription_clean['file_name'].str.replace('.flac', '', regex=False)
 
-merged_df = pd.merge(df_gt_stutter_clean[['file_name', 'ground_truth']], df_stutter_transcription_clean[['file_name', 'prediction']], on='file_name')
+merged_df = pd.merge(df_gt_stutter_clean[['file_name', 'ground_truth']], df_stutter_transcription_clean[['Filename', 'TunedTranscription']], on='file_name')
 
 # Display the merged dataframe
 print(merged_df.head)
