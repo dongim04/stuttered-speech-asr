@@ -47,4 +47,5 @@ merged_df['wer'] = wer_results
 mean_wer = merged_df['wer'].mean()
 
 print(f"The mean Word Error Rate is: {mean_wer:.4f}")
-# The mean Word Error Rate is: 0.0227
+# The mean Word Error Rate is: 0.0227 for Whisper
+# The mean Word Error Rate is: ______ for wav2vec
