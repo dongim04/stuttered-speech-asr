@@ -19,19 +19,20 @@ df_gt_stutter_clean = df_gt_stutter_clean.reset_index(drop=True)
 df_gt_stutter_clean['file_name'] = df_gt_stutter_clean['file_name'].str.replace('.csv', '', regex=False)
 
 # Remove the first column (index 0)
-df_stutter_transcription_clean = df_stutter_transcription.drop(df_stutter_transcription.columns[0], axis=1)
-
+# df_stutter_transcription_clean = df_stutter_transcription.drop(df_stutter_transcription.columns[0], axis=1)
 # Reset the index if needed
+df_stutter_transcription_clean = df_stutter_transcription.rename(columns={"Filename": 'file_name', 'TunedTranscription': 'TunedTranscription'})
 df_stutter_transcription_clean['file_name'] = df_stutter_transcription_clean['file_name'].str.replace('.flac', '', regex=False)
+print(df_stutter_transcription_clean.head)
 
-merged_df = pd.merge(df_gt_stutter_clean[['file_name', 'ground_truth']], df_stutter_transcription_clean[['Filename', 'TunedTranscription']], on='file_name')
+merged_df = pd.merge(df_gt_stutter_clean[['file_name', 'ground_truth']], df_stutter_transcription_clean[['file_name', 'TunedTranscription']], on='file_name')
 
 # Display the merged dataframe
 print(merged_df.head)
 
 # Calculate WER for each pair of ground truth and prediction
 ground_truth_list = merged_df['ground_truth'].tolist()
-prediction_list = merged_df['prediction'].tolist()
+prediction_list = merged_df['TunedTranscription'].tolist()
 
 # Calculate WER for each row
 wer_results = [
@@ -46,3 +47,4 @@ merged_df['wer'] = wer_results
 mean_wer = merged_df['wer'].mean()
 
 print(f"The mean Word Error Rate is: {mean_wer:.4f}")
+# The mean Word Error Rate is: 0.0227
